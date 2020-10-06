@@ -6,7 +6,7 @@ suite('stock-service', () => {
     fetchDataUrl()
       .then((response) => response.json())
       .then((json) => {
-        console.log(json);
+        expect(json).to.be.an('object');
       });
   });
 });
