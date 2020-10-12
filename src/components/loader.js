@@ -18,7 +18,7 @@ export default class Loader extends LitElement {
   render() {
     return html`
       <div class="loader">
-        <img src="/src/images/spinner.gif" />
+        <img src="/src/images/spinner.gif" alt="pre-loader" />
       </div>
     `;
   }

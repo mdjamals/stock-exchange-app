@@ -1,7 +1,7 @@
 import {LitElement, html, css} from 'lit-element';
 import './stock-details';
 import './loader';
-import {fetchDataUrl} from './stock-service';
+import {fetchDataUrl} from '../service/stock-service';
 
 export default class StockList extends LitElement {
   static get styles() {
@@ -92,6 +92,7 @@ export default class StockList extends LitElement {
       showDetails: {type: Boolean},
       selectedStock: {type: Object},
       prevInstruments: {type: Object},
+      error: {type: Boolean},
     };
   }
 
@@ -101,9 +102,13 @@ export default class StockList extends LitElement {
   }
 
   fetchUrl(first) {
+    this.error = false;
+    //fetching stock data response using fetch API
     fetchDataUrl()
       .then((response) => response.json())
       .then((json) => {
+        this.error = false;
+        //initializing previous data with current data for the first time only for comparison
         if (first === 'first') {
           this.prevInstruments = json;
         }
@@ -111,15 +116,10 @@ export default class StockList extends LitElement {
 
         this.compareStocks();
 
-        // set local storgare
-        const setInstrumentsLocal = this.instruments;
-        localStorage.setItem(
-          'instruments',
-          JSON.stringify(setInstrumentsLocal)
-        );
-
+        //updating previous data for the next comparison
         this.prevInstruments = json;
 
+        //updating stock detail component with the current data
         if (this.selectedStock) {
           const {name} = this.selectedStock;
           this.selectedStock = this.instruments.instruments.find(
@@ -129,10 +129,15 @@ export default class StockList extends LitElement {
 
         // console.log(this.instruments);
       })
-      .catch((error) => console.log(error));
+      .catch((error) => {
+        console.log(error);
+        this.error = true;
+        this.instruments = [];
+      });
   }
 
   compareStocks() {
+    //comparing prev and current array of objects by taking name as unique identifier
     this.prevInstruments.instruments.forEach((prevInstrument) => {
       this.instruments.instruments.forEach((instrument) => {
         if (prevInstrument.name === instrument.name) {
@@ -151,18 +156,13 @@ export default class StockList extends LitElement {
     // console.log(this.instruments);
   }
 
+  // Invoked when a component is added to the document’s DOM.
   connectedCallback() {
     super.connectedCallback();
-    if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
-      if (!localStorage.getItem('instruments')) {
-        this.fetchUrl('first');
-      } else {
-        const userData = JSON.parse(localStorage.getItem('instruments'));
-        this.instruments = userData;
-        this.prevInstruments = {...userData};
-      }
-    }
+    //fetching stock data for the first time
+    this.fetchUrl('first');
 
+    //setting interval for fetching stock data every 10 seconds
     this.interval = window.setInterval(() => {
       this.fetchUrl();
     }, 10000);
@@ -175,26 +175,27 @@ export default class StockList extends LitElement {
 
   firstUpdated() {}
 
+  //for showing stock detail component
   instrumentClicked(inst) {
     this.selectedStock = inst;
     this.showDetails = true;
     // console.log(this.showDetails);
   }
 
-  togglePopup() {
+  closePopup() {
     if (this.showDetails) {
       this.showDetails = !this.showDetails;
     }
   }
 
   renderInstruments() {
-    return (
-      this.instruments &&
-      [...this.instruments.instruments].map((inst) => {
+    if (this.instruments.instruments && this.instruments.instruments.length) {
+      return this.instruments.instruments.map((inst) => {
         return html`
           <tr>
             <td>
               <a
+                class="name"
                 @click="${() => {
                   this.instrumentClicked(inst);
                 }}"
@@ -212,8 +213,8 @@ export default class StockList extends LitElement {
             </td>
           </tr>
         `;
-      })
-    );
+      });
+    }
   }
 
   render() {
@@ -235,10 +236,17 @@ export default class StockList extends LitElement {
               : html`<tbody class="table-body">
                   ${this.renderInstruments()}
                 </tbody>`}
+            ${this.error
+              ? html`
+                  <div id="error-message">
+                    The request failed. Please refresh after sometime
+                  </div>
+                `
+              : ''}
           </table>
         </div>
         <div class="stock-detail-container ${this.showDetails ? 'active' : ''}">
-          <div class="close-icon" @click="${this.togglePopup}">X</div>
+          <div class="close-icon" @click="${this.closePopup}">X</div>
           <div class="stock-detail-inner">
             <stock-details-comp
               .inst=${this.selectedStock}

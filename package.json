@@ -6,7 +6,7 @@
   "module": "my-element.js",
   "type": "module",
   "scripts": {
-    "lint": "lit-analyzer index.js && eslint src/components/*.js",
+    "lint": "lit-analyzer index.js && eslint src/**/*.js",
     "format": "prettier my-element.js test/* --write",
     "docs": "npm run docs:clean && npm run analyze && npm run docs:build && npm run docs:assets && npm run docs:gen",
     "docs:clean": "rimraf docs",

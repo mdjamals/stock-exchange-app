@@ -3,13 +3,13 @@ import {fixture, html} from '@open-wc/testing';
 
 const assert = chai.assert;
 
-suite('Footer element test', () => {
-  test('Footer element should be able to define', () => {
+describe('Footer element test', () => {
+  it('Footer element should be able to define', () => {
     const el = document.createElement('footer-comp');
     assert.instanceOf(el, Footer);
   });
 
-  test('render elements', async () => {
+  it('renders a footer- elements', async () => {
     const el = await fixture(html`<footer-comp></footer-comp>`);
     assert.shadowDom.equal(
       el,
