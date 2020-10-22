@@ -25,7 +25,7 @@ export default class Footer extends LitElement {
   render () {
     return html`
       <div class="footer">
-        <p>© 2020 StockExchange.com</p>
+        <p>© 2020 StockExchange.com test deploy</p>
       </div>
     `
   }
